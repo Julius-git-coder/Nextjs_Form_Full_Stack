@@ -11,13 +11,13 @@ export default function DashboardPage() {
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
-      router.push("/auth/login");
+      router.push("/auth/Login");
     }
   }, [isAuthenticated, isLoading, router]);
 
   const handleLogout = async () => {
     await logout();
-    router.push("/auth/login");
+    router.push("/auth/Login");
   };
 
   if (isLoading) {
