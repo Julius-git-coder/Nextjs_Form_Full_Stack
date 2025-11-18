@@ -9,17 +9,23 @@ const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key-change-in-producti
  */
 export async function POST(request) {
   try {
-    // Get token from Authorization header
-    const authHeader = request.headers.get("authorization");
+    // Get token from Authorization header or cookies
+    let token = null;
     
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+    const authHeader = request.headers.get("authorization");
+    if (authHeader && authHeader.startsWith("Bearer ")) {
+      token = authHeader.substring(7);
+    } else {
+      // Fall back to cookie (for OAuth users)
+      token = request.cookies.get("accessToken")?.value;
+    }
+
+    if (!token) {
       return NextResponse.json(
         { message: "No token provided" },
         { status: 400 }
       );
     }
-
-    const token = authHeader.substring(7);
 
     // Verify token is valid (will throw if invalid)
     try {
@@ -31,21 +37,27 @@ export async function POST(request) {
       );
     }
 
-    // In a real application, you might:
-    // 1. Blacklist the token in a database
-    // 2. Add token to a Redis cache with expiration
-    // 3. Store revoked tokens in MongoDB
-    
-    // For now, clearing client-side tokens is sufficient
-    // The frontend should delete localStorage tokens
-
-    return NextResponse.json(
+    // Clear authentication cookies
+    const response = NextResponse.json(
       { 
         message: "Logout successful",
         success: true 
       },
       { status: 200 }
     );
+
+    // Delete cookies
+    response.cookies.delete("accessToken");
+    response.cookies.delete("refreshToken");
+    response.cookies.delete("userId");
+    response.cookies.delete("user");
+
+    // In a real application, you might:
+    // 1. Blacklist the token in a database
+    // 2. Add token to a Redis cache with expiration
+    // 3. Store revoked tokens in MongoDB
+    
+    return response;
   } catch (error) {
     console.error("Logout error:", error);
     return NextResponse.json(

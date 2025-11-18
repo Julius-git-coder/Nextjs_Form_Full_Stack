@@ -7,32 +7,42 @@ export default function OAuthSyncPage() {
   const router = useRouter();
 
   useEffect(() => {
-    // Sync user data from cookies to localStorage
+    // Sync user data from cookies to localStorage and verify session
     const syncAndRedirect = async () => {
       try {
         // Give cookies a moment to be fully set
         await new Promise(resolve => setTimeout(resolve, 200));
 
-        const userCookie = document.cookie
-          .split("; ")
-          .find((row) => row.startsWith("user="))
-          ?.split("=")[1];
+        // Verify the session by calling /api/auth/me
+        // This endpoint will validate the accessToken cookie
+        const meResponse = await fetch("/api/auth/me", {
+          method: "GET",
+          credentials: "include", // Include cookies
+        });
 
-        if (userCookie) {
-          try {
-            const userData = JSON.parse(decodeURIComponent(userCookie));
-            localStorage.setItem("auth_user", JSON.stringify(userData));
-          } catch (parseErr) {
-            console.error("Failed to parse user cookie:", parseErr);
-          }
+        if (!meResponse.ok) {
+          throw new Error(`Session verification failed: ${meResponse.status}`);
         }
 
+        const meData = await meResponse.json();
+        const userData = meData.user;
+
+        // Store user data in localStorage
+        localStorage.setItem("auth_user", JSON.stringify(userData));
+        // Mark that we have a valid token (can't read HTTP-only cookie, so we use this flag)
+        localStorage.setItem("auth_access_token", JSON.stringify("verified"));
+
+        console.log("✅ OAuth sync completed for:", userData.email);
+
         // Redirect to dashboard
-        // The middleware will verify the accessToken cookie
         router.replace("/dashboard");
       } catch (error) {
         console.error("Failed to sync OAuth data:", error);
-        router.push("/auth/Login");
+        // Clear any partial data
+        localStorage.removeItem("auth_user");
+        localStorage.removeItem("auth_access_token");
+        // Redirect to login with error
+        router.push("/auth/Login?error=oauth_sync_failed");
       }
     };
 
