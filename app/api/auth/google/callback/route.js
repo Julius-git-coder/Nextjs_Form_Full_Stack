@@ -98,13 +98,34 @@ export async function GET(request) {
       { expiresIn: "7d" }
     );
 
-    // Redirect with tokens as query params
-    const redirectUrl = new URL("/dashboard", process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000");
-    redirectUrl.searchParams.append("accessToken", accessToken);
-    redirectUrl.searchParams.append("refreshToken", refreshToken);
-    redirectUrl.searchParams.append("userId", user._id.toString());
+    // Create response with redirect to dashboard
+    const response = NextResponse.redirect(
+      new URL("/dashboard", process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000")
+    );
 
-    return NextResponse.redirect(redirectUrl.toString());
+    // Store tokens in cookies
+    response.cookies.set("accessToken", accessToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      maxAge: 15 * 60, // 15 minutes
+    });
+
+    response.cookies.set("refreshToken", refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      maxAge: 7 * 24 * 60 * 60, // 7 days
+    });
+
+    response.cookies.set("userId", user._id.toString(), {
+      httpOnly: false,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      maxAge: 7 * 24 * 60 * 60,
+    });
+
+    return response;
   } catch (error) {
     console.error("Google callback error:", error);
     return NextResponse.redirect(

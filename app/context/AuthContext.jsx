@@ -27,8 +27,25 @@ export function AuthProvider({ children }) {
         const storedUser = getUser();
         const hasToken = isAuthenticated();
 
-        if (storedUser && hasToken) {
-          setUserState(storedUser);
+        // Try to get user from cookie if not in localStorage
+        let userToUse = storedUser;
+        if (!storedUser && hasToken) {
+          const userId = document.cookie
+            .split("; ")
+            .find((row) => row.startsWith("userId="))
+            ?.split("=")[1];
+          
+          if (userId) {
+            // Minimal user object from cookie
+            userToUse = {
+              id: userId,
+              email: "user@example.com", // Will be updated on next API call
+            };
+          }
+        }
+
+        if (userToUse && hasToken) {
+          setUserState(userToUse);
           setIsAuthenticated(true);
         } else {
           setUserState(null);
