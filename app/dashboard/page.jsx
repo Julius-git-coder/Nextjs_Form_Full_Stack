@@ -10,13 +10,17 @@ export default function DashboardPage() {
   const { user, isLoading, isAuthenticated, logout } = useAuth();
 
   useEffect(() => {
-    console.log("📊 Dashboard Effect:", { isLoading, isAuthenticated, hasUser: !!user });
-    
-    if (!isLoading && !isAuthenticated) {
-      console.log("❌ Dashboard: Not authenticated, redirecting to login");
-      router.push("/auth/Login");
-    } else if (!isLoading && isAuthenticated) {
-      console.log("✅ Dashboard: Authenticated!");
+    // Only redirect if we're absolutely sure we're not authenticated
+    // The middleware will handle redirecting unauthenticated users
+    // This useEffect is a secondary check for localStorage-based auth
+    if (!isLoading && !isAuthenticated && typeof document !== "undefined") {
+      // Check if we have an accessToken cookie (OAuth flow)
+      const hasAccessTokenCookie = document.cookie.includes("accessToken=");
+      
+      // Only redirect if we're truly not authenticated
+      if (!hasAccessTokenCookie) {
+        router.push("/auth/Login");
+      }
     }
   }, [isAuthenticated, isLoading, router]);
 
