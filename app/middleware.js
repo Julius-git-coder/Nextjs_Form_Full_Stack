@@ -17,7 +17,7 @@ const protectedRoutes = [
 /**
  * Public routes that should not redirect authenticated users
  */
-const publicRoutes = ["/auth/login", "/auth/signup", "/auth/forgot-password"];
+const publicRoutes = ["/auth/Login", "/auth/signup", "/auth/forgot-password"];
 
 /**
  * Verify JWT token
@@ -49,13 +49,13 @@ export async function middleware(request) {
   // Verify token for protected routes
   if (isProtectedRoute) {
     if (!token) {
-      return NextResponse.redirect(new URL("/auth/login", request.url));
+      return NextResponse.redirect(new URL("/auth/Login", request.url));
     }
 
     const payload = await verifyToken(token);
     if (!payload) {
       // Clear invalid token
-      const response = NextResponse.redirect(new URL("/auth/login", request.url));
+      const response = NextResponse.redirect(new URL("/auth/Login", request.url));
       response.cookies.delete("accessToken");
       return response;
     }

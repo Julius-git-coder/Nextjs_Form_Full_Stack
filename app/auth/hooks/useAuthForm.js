@@ -80,46 +80,23 @@ export function useAuthForm() {
       setApiError("");
 
       if (provider === "Google") {
-        // Load Google API
-        if (!window.google) {
-          const message = "Google authentication service not available. Please reload the page.";
-          setApiError(message);
-          showError(message);
-          setIsLoading(false);
-          return;
-        }
-
-        // Store callback globally so Google can call it
-        window.handleGoogleAuthCallback = handleGoogleCallback;
-
-        // Initialize Google Sign-In
-        window.google.accounts.id.initialize({
-          client_id: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID,
-          callback: window.handleGoogleAuthCallback,
-        });
-
-        // Trigger One Tap UI
-        window.google.accounts.id.prompt((notification) => {
-          if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
-            // If One Tap not shown, show the Google Sign-In button click programmatically
-            window.google.accounts.id.renderButton(
-              document.getElementById("google-signin-button"),
-              {
-                type: "standard",
-                size: "large",
-                theme: "outline",
-                text: "signin_with",
-              }
-            );
-            // Trigger a manual click after a short delay
-            setTimeout(() => {
-              const button = document.querySelector("[data-google-signin-button]");
-              if (button) {
-                button.click();
-              }
-            }, 100);
-          }
-        });
+        // Use OAuth 2.0 redirect flow to avoid FedCM issues
+        const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
+        const redirectUri = `${window.location.origin}/api/auth/google/callback`;
+        const scope = "openid profile email";
+        const responseType = "code";
+        
+        const authUrl = new URL("https://accounts.google.com/o/oauth2/v2/auth");
+        authUrl.searchParams.append("client_id", clientId);
+        authUrl.searchParams.append("redirect_uri", redirectUri);
+        authUrl.searchParams.append("response_type", responseType);
+        authUrl.searchParams.append("scope", scope);
+        authUrl.searchParams.append("access_type", "offline");
+        authUrl.searchParams.append("prompt", "consent");
+        
+        // Redirect to Google OAuth
+        window.location.href = authUrl.toString();
+        setIsLoading(false);
       } else if (provider === "Apple") {
         // Apple Sign-In
         if (!window.AppleID) {
@@ -221,14 +198,14 @@ export function useAuthForm() {
   };
 
   const navigateTo = (page) => {
+    if (page === currentPage) return; // Prevent unnecessary updates
+    
     setCurrentPage(page);
     setErrors({});
     setApiError("");
     setShowPassword(false);
+    setFormData(INITIAL_FORM_STATE);
     clearError();
-    if (page !== currentPage) {
-      setFormData(INITIAL_FORM_STATE);
-    }
 
     // Update browser URL based on page
     const pageRoutes = {

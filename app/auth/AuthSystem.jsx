@@ -2,6 +2,7 @@
 
 import { ArrowLeft } from "lucide-react";
 import { useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { useAuthForm } from "./hooks/useAuthForm";
 import { PAGE_CONFIG, GOOGLE_SVG, APPLE_SVG } from "./utils/constants";
 import InputField from "./components/InputField";
@@ -30,10 +31,10 @@ export default function AuthSystem({ initialPage = "login" }) {
 
   // Set initial page if provided
   useEffect(() => {
-    if (initialPage !== "login") {
+    if (initialPage !== "login" && initialPage !== currentPage) {
       navigateTo(initialPage);
     }
-  }, [initialPage]);
+  }, []);
 
   const config = PAGE_CONFIG[currentPage];
 
@@ -237,23 +238,71 @@ export default function AuthSystem({ initialPage = "login" }) {
     }
   };
 
+  // Animation variants
+  const containerVariants = {
+    hidden: { opacity: 0, scale: 0.95 },
+    visible: {
+      opacity: 1,
+      scale: 1,
+      transition: { duration: 0.5, ease: "easeOut" },
+    },
+    exit: { opacity: 0, scale: 0.95, transition: { duration: 0.3 } },
+  };
+
+  const contentVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: { duration: 0.4, ease: "easeOut", delay: 0.1 },
+    },
+  };
+
+  const panelVariants = {
+    hidden: { opacity: 0, x: currentPage === "signup" ? -40 : 40 },
+    visible: {
+      opacity: 1,
+      x: 0,
+      transition: { duration: 0.5, ease: "easeOut" },
+    },
+  };
+
   // Forgot password uses vertical layout
   if (currentPage === "forgot") {
     return (
       <div className="min-h-screen bg-black flex items-center justify-center p-4 sm:p-8">
         <BackgroundParticles />
 
-        <div className="relative z-20 flex flex-col max-w-2xl w-full bg-white rounded-3xl overflow-hidden shadow-2xl transition-all duration-700">
-          <div className="w-full bg-gradient-to-br from-teal-600 to-black">
-            <ColoredPanel config={config} />
-          </div>
-          <div className="w-full bg-white p-6 sm:p-8 lg:p-12">
-            <h2 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-6 lg:mb-8 text-center transition-all duration-500">
-              {config.formTitle}
-            </h2>
-            <div className="space-y-4 max-w-md mx-auto">{renderForm()}</div>
-          </div>
-        </div>
+        <AnimatePresence mode="wait">
+          <motion.div
+            key="forgot-container"
+            variants={containerVariants}
+            initial="hidden"
+            animate="visible"
+            exit="exit"
+            className="relative z-20 flex flex-col max-w-2xl w-full bg-white rounded-3xl overflow-hidden shadow-2xl"
+          >
+            <motion.div
+              className="w-full bg-gradient-to-br from-teal-600 to-black"
+              variants={panelVariants}
+              initial="hidden"
+              animate="visible"
+            >
+              <ColoredPanel config={config} />
+            </motion.div>
+            <motion.div
+              className="w-full bg-white p-6 sm:p-8 lg:p-12"
+              variants={contentVariants}
+              initial="hidden"
+              animate="visible"
+            >
+              <h2 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-6 lg:mb-8 text-center">
+                {config.formTitle}
+              </h2>
+              <div className="space-y-4 max-w-md mx-auto">{renderForm()}</div>
+            </motion.div>
+          </motion.div>
+        </AnimatePresence>
       </div>
     );
   }
@@ -263,22 +312,39 @@ export default function AuthSystem({ initialPage = "login" }) {
     <div className="min-h-screen bg-black flex items-center justify-center p-4 sm:p-8">
       <BackgroundParticles />
 
-      <div
-        className={`relative z-20 flex flex-col lg:flex-row max-w-6xl w-full bg-white rounded-3xl overflow-hidden shadow-2xl transition-all duration-700 ${
-          currentPage === "signup" ? "lg:flex-row" : "lg:flex-row-reverse"
-        }`}
-      >
-        <div className="lg:w-1/2 bg-gradient-to-br from-teal-600 to-black transition-all duration-700">
-          <ColoredPanel config={config} />
-        </div>
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={`${currentPage}-container`}
+          variants={containerVariants}
+          initial="hidden"
+          animate="visible"
+          exit="exit"
+          className={`relative z-20 flex flex-col lg:flex-row max-w-6xl w-full bg-white rounded-3xl overflow-hidden shadow-2xl ${
+            currentPage === "signup" ? "lg:flex-row" : "lg:flex-row-reverse"
+          }`}
+        >
+          <motion.div
+            className="lg:w-1/2 bg-gradient-to-br from-teal-600 to-black"
+            variants={panelVariants}
+            initial="hidden"
+            animate="visible"
+          >
+            <ColoredPanel config={config} />
+          </motion.div>
 
-        <div className="lg:w-1/2 bg-white p-6 sm:p-8 lg:p-12 flex flex-col justify-center transition-all duration-700">
-          <h2 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-6 lg:mb-8 text-center transition-all duration-500">
-            {config.formTitle}
-          </h2>
-          <div className="space-y-4">{renderForm()}</div>
-        </div>
-      </div>
+          <motion.div
+            className="lg:w-1/2 bg-white p-6 sm:p-8 lg:p-12 flex flex-col justify-center"
+            variants={contentVariants}
+            initial="hidden"
+            animate="visible"
+          >
+            <h2 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-6 lg:mb-8 text-center">
+              {config.formTitle}
+            </h2>
+            <div className="space-y-4">{renderForm()}</div>
+          </motion.div>
+        </motion.div>
+      </AnimatePresence>
     </div>
   );
 }
