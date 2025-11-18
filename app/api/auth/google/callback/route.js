@@ -107,11 +107,11 @@ export async function GET(request) {
       { expiresIn: "7d" }
     );
 
-    // Create response with redirect to dashboard
+    // Create response with redirect to oauth-sync page (which will sync cookies and redirect to dashboard)
     const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
-    console.log(`[OAuth Callback] Redirecting to: ${baseUrl}/dashboard`);
+    console.log(`[OAuth Callback] Redirecting to: ${baseUrl}/auth/oauth-sync`);
     const response = NextResponse.redirect(
-      new URL("/dashboard", baseUrl)
+      new URL("/auth/oauth-sync", baseUrl)
     );
 
     // Store tokens in cookies
