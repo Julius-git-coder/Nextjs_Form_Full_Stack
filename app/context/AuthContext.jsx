@@ -25,7 +25,10 @@ export function AuthProvider({ children }) {
   useEffect(() => {
     const initializeAuth = async () => {
       try {
-        logAuthState("AuthContext - Before Sync");
+        // Wait a moment for any pending cookie syncs
+        await new Promise(resolve => setTimeout(resolve, 50));
+        
+        logAuthState("AuthContext - Initialization");
         
         // First, sync OAuth user cookie to localStorage if it exists
         if (typeof document !== "undefined") {
@@ -38,31 +41,29 @@ export function AuthProvider({ children }) {
             try {
               const userData = JSON.parse(decodeURIComponent(userCookie));
               localStorage.setItem("auth_user", JSON.stringify(userData));
-              console.log("✅ Synced user from cookie to localStorage");
+              console.log("✅ AuthContext synced user from cookie to localStorage");
             } catch (e) {
-              console.error("Failed to parse user cookie:", e);
+              console.error("❌ AuthContext failed to parse user cookie:", e);
             }
           }
         }
         
-        logAuthState("AuthContext - After Sync");
-        
         const storedUser = getUser();
         const hasToken = isAuthenticated(); // This now checks cookies too
         
-        console.log("🔍 Auth Check:", {
+        console.log("🔍 AuthContext Auth Check:", {
           storedUser: !!storedUser,
           hasToken,
           userEmail: storedUser?.email,
         });
         
-        // Check if we have both user data and a token (token check includes cookie check)
+        // Check if we have both user data and a token
         if (storedUser && hasToken) {
-          console.log("✅ Authenticated!");
+          console.log("✅ AuthContext Authenticated!");
           setUserState(storedUser);
           setIsAuthenticated(true);
         } else {
-          console.log("❌ Not authenticated - missing token or user", {
+          console.log("❌ AuthContext Not authenticated - missing token or user", {
             hasToken,
             hasUser: !!storedUser,
           });
@@ -70,7 +71,7 @@ export function AuthProvider({ children }) {
           setIsAuthenticated(false);
         }
       } catch (err) {
-        console.error("Failed to initialize auth:", err);
+        console.error("❌ AuthContext Failed to initialize auth:", err);
         setError(err.message);
         setUserState(null);
         setIsAuthenticated(false);
