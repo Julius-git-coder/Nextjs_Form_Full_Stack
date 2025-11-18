@@ -48,7 +48,7 @@ export function AuthProvider({ children }) {
         logAuthState("AuthContext - After Sync");
         
         const storedUser = getUser();
-        const hasToken = isAuthenticated();
+        const hasToken = isAuthenticated(); // This now checks cookies too
         
         console.log("🔍 Auth Check:", {
           storedUser: !!storedUser,
@@ -56,28 +56,18 @@ export function AuthProvider({ children }) {
           userEmail: storedUser?.email,
         });
         
-        // Check if we have both user data and a token
+        // Check if we have both user data and a token (token check includes cookie check)
         if (storedUser && hasToken) {
-          console.log("✅ Authenticated via localStorage token");
+          console.log("✅ Authenticated!");
           setUserState(storedUser);
           setIsAuthenticated(true);
         } else {
-          // Also check if accessToken cookie exists (can't read it but can verify presence)
-          const hasCookie = typeof document !== "undefined" && 
-                           document.cookie.includes("accessToken=");
-          
-          console.log("🔍 Cookie Check:", { hasCookie, storedUser: !!storedUser });
-          
-          if (storedUser && hasCookie) {
-            // Token cookie exists and we have user data, treat as authenticated
-            console.log("✅ Authenticated via cookie + user data");
-            setUserState(storedUser);
-            setIsAuthenticated(true);
-          } else {
-            console.log("❌ Not authenticated - missing token or user");
-            setUserState(null);
-            setIsAuthenticated(false);
-          }
+          console.log("❌ Not authenticated - missing token or user", {
+            hasToken,
+            hasUser: !!storedUser,
+          });
+          setUserState(null);
+          setIsAuthenticated(false);
         }
       } catch (err) {
         console.error("Failed to initialize auth:", err);
