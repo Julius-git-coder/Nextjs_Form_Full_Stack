@@ -1,6 +1,7 @@
 "use client";
 
 import { ArrowLeft } from "lucide-react";
+import { useEffect } from "react";
 import { useAuthForm } from "./hooks/useAuthForm";
 import { PAGE_CONFIG, GOOGLE_SVG, APPLE_SVG } from "./utils/constants";
 import InputField from "./components/InputField";
@@ -27,9 +28,11 @@ export default function AuthSystem({ initialPage = "login" }) {
   } = useAuthForm();
 
   // Set initial page if provided
-  if (currentPage !== initialPage && initialPage !== "login") {
-    navigateTo(initialPage);
-  }
+  useEffect(() => {
+    if (initialPage !== "login") {
+      navigateTo(initialPage);
+    }
+  }, [initialPage]);
 
   const config = PAGE_CONFIG[currentPage];
 
