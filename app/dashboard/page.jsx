@@ -10,8 +10,13 @@ export default function DashboardPage() {
   const { user, isLoading, isAuthenticated, logout } = useAuth();
 
   useEffect(() => {
+    console.log("📊 Dashboard Effect:", { isLoading, isAuthenticated, hasUser: !!user });
+    
     if (!isLoading && !isAuthenticated) {
+      console.log("❌ Dashboard: Not authenticated, redirecting to login");
       router.push("/auth/Login");
+    } else if (!isLoading && isAuthenticated) {
+      console.log("✅ Dashboard: Authenticated!");
     }
   }, [isAuthenticated, isLoading, router]);
 
