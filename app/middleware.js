@@ -26,6 +26,7 @@ const publicRoutes = ["/auth/Login", "/auth/SignUp", "/auth/ForgetPassword"];
 const skipRoutes = [
   "/api/auth",
   "/api/auth/google/callback",
+  "/auth/oauth-sync",
 ];
 
 /**
