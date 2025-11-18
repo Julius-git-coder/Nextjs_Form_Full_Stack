@@ -3,6 +3,7 @@ export default function SocialButton({ provider, icon, onClick, variant = "secon
     <button
       type="button"
       onClick={onClick}
+      data-google-signin-button={provider === "Google" ? true : undefined}
       className={`w-full py-3 rounded-lg font-medium transition flex items-center justify-center gap-2 ${
         variant === "primary"
           ? "bg-black hover:bg-gray-800"

@@ -75,55 +75,76 @@ export function useAuthForm() {
   };
 
   const handleSocialLogin = async (provider) => {
-    if (provider !== "Google") {
-      const message = "Only Google authentication is currently supported";
-      setApiError(message);
-      showError(message);
-      return;
-    }
-
     try {
       setIsLoading(true);
       setApiError("");
 
-      // Load Google API
-      if (!window.google) {
-        const message = "Google authentication service not available. Please reload the page.";
-        setApiError(message);
-        showError(message);
-        return;
+      if (provider === "Google") {
+        // Load Google API
+        if (!window.google) {
+          const message = "Google authentication service not available. Please reload the page.";
+          setApiError(message);
+          showError(message);
+          setIsLoading(false);
+          return;
+        }
+
+        // Store callback globally so Google can call it
+        window.handleGoogleAuthCallback = handleGoogleCallback;
+
+        // Initialize Google Sign-In
+        window.google.accounts.id.initialize({
+          client_id: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID,
+          callback: window.handleGoogleAuthCallback,
+        });
+
+        // Trigger One Tap UI
+        window.google.accounts.id.prompt((notification) => {
+          if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
+            // If One Tap not shown, show the Google Sign-In button click programmatically
+            window.google.accounts.id.renderButton(
+              document.getElementById("google-signin-button"),
+              {
+                type: "standard",
+                size: "large",
+                theme: "outline",
+                text: "signin_with",
+              }
+            );
+            // Trigger a manual click after a short delay
+            setTimeout(() => {
+              const button = document.querySelector("[data-google-signin-button]");
+              if (button) {
+                button.click();
+              }
+            }, 100);
+          }
+        });
+      } else if (provider === "Apple") {
+        // Apple Sign-In
+        if (!window.AppleID) {
+          const message = "Apple authentication service not available. Please reload the page.";
+          setApiError(message);
+          showError(message);
+          setIsLoading(false);
+          return;
+        }
+
+        window.AppleID.auth.init({
+          clientId: process.env.NEXT_PUBLIC_APPLE_CLIENT_ID,
+          teamId: process.env.NEXT_PUBLIC_APPLE_TEAM_ID,
+          keyId: process.env.NEXT_PUBLIC_APPLE_KEY_ID,
+          redirectURI: `${window.location.origin}/api/auth/apple/callback`,
+          usePopup: true,
+        });
+
+        window.AppleID.auth.signIn();
       }
-
-      // Initialize Google Sign-In
-      window.google.accounts.id.initialize({
-        client_id: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID,
-        callback: handleGoogleCallback,
-      });
-
-      // Trigger Google Sign-In
-      window.google.accounts.id.renderButton(
-        document.getElementById("google-signin-button"),
-        {
-          type: "standard",
-          size: "large",
-          theme: "outline",
-          text: "signin_with",
-        }
-      );
-
-      // Programmatic sign-in
-      window.google.accounts.id.prompt((notification) => {
-        if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
-          // Fall back to button click
-          document.getElementById("google-signin-button")?.click();
-        }
-      });
     } catch (error) {
       console.error("Social login error:", error);
       const message = "Failed to initialize social authentication";
       setApiError(message);
       showError(message);
-    } finally {
       setIsLoading(false);
     }
   };
