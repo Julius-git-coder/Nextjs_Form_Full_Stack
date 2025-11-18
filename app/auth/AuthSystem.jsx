@@ -19,6 +19,7 @@ export default function AuthSystem({ initialPage = "login" }) {
     showPassword,
     errors,
     isLoading,
+    apiError,
     handleInputChange,
     handleSubmit,
     handleSocialLogin,

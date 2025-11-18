@@ -25,6 +25,30 @@ body {
   font-family: Arial, Helvetica, sans-serif;
 }
 
+/* Hide Next.js dev tools button */
+#next-logo,
+button[data-nextjs-dev-tools-button="true"],
+[data-next-mark="true"] {
+  display: none !important;
+}
+
+/* Hide Next.js dev indicator and logo */
+[class*="devtools"],
+[class*="dev-tools"],
+[class*="watermark"],
+[class*="__wrapper"] > :first-child::after,
+div[class=""],
+svg path.paused,
+svg[width="40"][height="40"] {
+  display: none !important;
+}
+
+/* Hide any fixed/absolute overlays */
+div[style*="position: fixed"],
+div[style*="position: absolute"] {
+  z-index: -9999 !important;
+}
+
 .input {
   width: 100%;
   padding: 12px;
