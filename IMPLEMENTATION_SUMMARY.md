@@ -50,7 +50,7 @@ After signup with any email/password (min 6 chars), use those credentials to log
 ✅ app/api/auth/reset-password/route.js
 ✅ app/api/auth/verify-email/route.js
 ```
-
+ ok
 ### New Utilities (2 files)
 ```
 ✅ lib/auth/tokens.js
