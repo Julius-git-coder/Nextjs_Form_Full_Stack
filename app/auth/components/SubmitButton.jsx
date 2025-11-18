@@ -4,7 +4,7 @@ export default function SubmitButton({ isLoading, loadingText, submitText, onCli
       type="button"
       onClick={onClick}
       disabled={isLoading}
-      className="w-full bg-black py-3 rounded-lg font-medium hover:bg-gray-800 transition flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+      className="w-full bg-black py-3 rounded-lg font-medium hover:bg-gray-800 transition flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed text-white"
     >
       {isLoading ? (
         <>

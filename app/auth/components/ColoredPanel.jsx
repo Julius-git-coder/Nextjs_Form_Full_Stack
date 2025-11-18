@@ -8,13 +8,13 @@ export default function ColoredPanel({ config }) {
         <Particles {...PARTICLES_CONFIG} className="w-full h-full" />
       </div>
       <div className="relative z-10 text-center">
-        <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-4 transition-all duration-500">
-          {config.title}
-        </h1>
-        <p className="text-sm sm:text-base lg:text-lg opacity-90 transition-all duration-500">
-          {config.subtitle}
-        </p>
-      </div>
+         <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-4 transition-all duration-500 text-white">
+           {config.title}
+         </h1>
+         <p className="text-sm sm:text-base lg:text-lg opacity-95 transition-all duration-500 text-white">
+           {config.subtitle}
+         </p>
+       </div>
     </div>
   );
 }
