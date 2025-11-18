@@ -29,6 +29,37 @@ export default function RootLayout({ children }) {
           async
           defer
         ></script>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              // Sync OAuth cookies to localStorage on page load
+              (function() {
+                try {
+                  const userCookie = document.cookie
+                    .split('; ')
+                    .find(row => row.startsWith('user='))
+                    ?.split('=')[1];
+                  
+                  if (userCookie) {
+                    const userData = JSON.parse(decodeURIComponent(userCookie));
+                    localStorage.setItem('auth_user', JSON.stringify(userData));
+                  }
+                  
+                  const accessTokenCookie = document.cookie
+                    .split('; ')
+                    .find(row => row.startsWith('accessToken='))
+                    ?.split('=')[1];
+                  
+                  if (accessTokenCookie) {
+                    localStorage.setItem('auth_access_token', JSON.stringify(accessTokenCookie));
+                  }
+                } catch (e) {
+                  console.error('Failed to sync auth data from cookies:', e);
+                }
+              })();
+            `,
+          }}
+        />
       </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}

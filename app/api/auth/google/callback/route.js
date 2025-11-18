@@ -125,6 +125,25 @@ export async function GET(request) {
       maxAge: 7 * 24 * 60 * 60,
     });
 
+    // Also set localStorage via Set-Cookie header for client-side access
+    // This is a workaround since we can't directly set localStorage from server
+    const userData = {
+      id: user._id.toString(),
+      firstName: user.firstName,
+      lastName: user.lastName,
+      email: user.email,
+      fullName: `${user.firstName} ${user.lastName}`,
+      createdAt: user.createdAt,
+      isEmailVerified: user.isEmailVerified || true,
+    };
+
+    response.cookies.set("user", JSON.stringify(userData), {
+      httpOnly: false,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      maxAge: 7 * 24 * 60 * 60,
+    });
+
     return response;
   } catch (error) {
     console.error("Google callback error:", error);
