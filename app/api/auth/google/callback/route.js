@@ -125,9 +125,9 @@ export async function GET(request) {
       maxAge: 7 * 24 * 60 * 60,
     });
 
-    // Also set localStorage via Set-Cookie header for client-side access
+    // Also set user data in cookie for client-side access
     // This is a workaround since we can't directly set localStorage from server
-    const userData = {
+    const userDataForCookie = {
       id: user._id.toString(),
       firstName: user.firstName,
       lastName: user.lastName,
@@ -137,7 +137,7 @@ export async function GET(request) {
       isEmailVerified: user.isEmailVerified || true,
     };
 
-    response.cookies.set("user", JSON.stringify(userData), {
+    response.cookies.set("user", JSON.stringify(userDataForCookie), {
       httpOnly: false,
       secure: process.env.NODE_ENV === "production",
       sameSite: "lax",
