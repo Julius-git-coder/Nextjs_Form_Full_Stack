@@ -41,17 +41,14 @@ export default function RootLayout({ children }) {
                     ?.split('=')[1];
                   
                   if (userCookie) {
-                    const userData = JSON.parse(decodeURIComponent(userCookie));
-                    localStorage.setItem('auth_user', JSON.stringify(userData));
-                  }
-                  
-                  const accessTokenCookie = document.cookie
-                    .split('; ')
-                    .find(row => row.startsWith('accessToken='))
-                    ?.split('=')[1];
-                  
-                  if (accessTokenCookie) {
-                    localStorage.setItem('auth_access_token', JSON.stringify(accessTokenCookie));
+                    try {
+                      const userData = JSON.parse(decodeURIComponent(userCookie));
+                      localStorage.setItem('auth_user', JSON.stringify(userData));
+                      // Also set a flag that OAuth was successful
+                      localStorage.setItem('oauth_synced', 'true');
+                    } catch (parseErr) {
+                      console.error('Failed to parse user cookie:', parseErr);
+                    }
                   }
                 } catch (e) {
                   console.error('Failed to sync auth data from cookies:', e);

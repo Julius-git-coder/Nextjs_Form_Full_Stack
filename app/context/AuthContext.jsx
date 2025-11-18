@@ -26,27 +26,29 @@ export function AuthProvider({ children }) {
       try {
         const storedUser = getUser();
         const hasToken = isAuthenticated();
+        
+        // Check if OAuth was recently synced
+        const oauthSynced = localStorage.getItem("oauth_synced") === "true";
 
         // Try to get user from cookie if not in localStorage
         let userToUse = storedUser;
-        if (!storedUser && hasToken) {
-          const userId = document.cookie
-            .split("; ")
-            .find((row) => row.startsWith("userId="))
-            ?.split("=")[1];
-          
-          if (userId) {
-            // Minimal user object from cookie
-            userToUse = {
-              id: userId,
-              email: "user@example.com", // Will be updated on next API call
-            };
+        let hasAccessToken = hasToken;
+        
+        if (!hasToken) {
+          // Check if accessToken cookie exists (server-set, can't read it, but we know it's there if this succeeded)
+          const hasCookie = document.cookie.includes("accessToken=");
+          if (hasCookie && oauthSynced && storedUser) {
+            hasAccessToken = true;
           }
         }
 
-        if (userToUse && hasToken) {
+        if (userToUse && hasAccessToken) {
           setUserState(userToUse);
           setIsAuthenticated(true);
+          // Clear the oauth sync flag after use
+          if (oauthSynced) {
+            localStorage.removeItem("oauth_synced");
+          }
         } else {
           setUserState(null);
           setIsAuthenticated(false);

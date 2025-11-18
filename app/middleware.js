@@ -6,18 +6,27 @@ const JWT_SECRET = new TextEncoder().encode(
 );
 
 /**
- * Protected API routes that require authentication
+ * Protected routes that require authentication
  */
 const protectedRoutes = [
   "/api/user",
   "/api/profile",
   "/api/settings",
+  "/dashboard",
 ];
 
 /**
  * Public routes that should not redirect authenticated users
  */
 const publicRoutes = ["/auth/Login", "/auth/SignUp", "/auth/ForgetPassword"];
+
+/**
+ * Routes to skip middleware entirely
+ */
+const skipRoutes = [
+  "/api/auth",
+  "/api/auth/google/callback",
+];
 
 /**
  * Verify JWT token
@@ -37,6 +46,12 @@ async function verifyToken(token) {
 export async function middleware(request) {
   const { pathname } = request.nextUrl;
   const token = request.cookies.get("accessToken")?.value;
+
+  // Skip middleware for auth callback and API routes
+  const shouldSkip = skipRoutes.some((route) => pathname.startsWith(route));
+  if (shouldSkip) {
+    return NextResponse.next();
+  }
 
   // Check if route is protected
   const isProtectedRoute = protectedRoutes.some((route) =>
