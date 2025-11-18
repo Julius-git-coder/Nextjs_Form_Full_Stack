@@ -20,13 +20,13 @@ export async function GET(request) {
     if (error) {
       const errorDescription = searchParams.get("error_description") || error;
       return NextResponse.redirect(
-        `/auth/SignUp?error=${encodeURIComponent(errorDescription)}`
+        `/auth/Login?error=${encodeURIComponent(errorDescription)}`
       );
     }
 
     if (!code) {
       return NextResponse.redirect(
-        "/auth/SignUp?error=" + encodeURIComponent("No authorization code received")
+        "/auth/Login?error=" + encodeURIComponent("No authorization code received")
       );
     }
 
@@ -46,7 +46,7 @@ export async function GET(request) {
     if (!tokenResponse.ok) {
       const errorData = await tokenResponse.json();
       return NextResponse.redirect(
-        "/auth/SignUp?error=" + encodeURIComponent(errorData.error_description || "Token exchange failed")
+        "/auth/Login?error=" + encodeURIComponent(errorData.error_description || "Token exchange failed")
       );
     }
 
@@ -129,7 +129,7 @@ export async function GET(request) {
   } catch (error) {
     console.error("Google callback error:", error);
     return NextResponse.redirect(
-      "/auth/SignUp?error=" + encodeURIComponent("Authentication failed")
+      "/auth/Login?error=" + encodeURIComponent("Authentication failed")
     );
   }
 }

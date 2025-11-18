@@ -17,7 +17,7 @@ const protectedRoutes = [
 /**
  * Public routes that should not redirect authenticated users
  */
-const publicRoutes = ["/auth/Login", "/auth/signup", "/auth/forgot-password"];
+const publicRoutes = ["/auth/Login", "/auth/SignUp", "/auth/ForgetPassword"];
 
 /**
  * Verify JWT token
