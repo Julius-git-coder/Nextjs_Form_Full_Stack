@@ -2,6 +2,7 @@
 
 import React, { createContext, useCallback, useEffect, useState } from "react";
 import apiClient from "@/lib/api-client";
+import { logAuthState } from "@/lib/debug-auth";
 import {
   getAccessToken,
   getUser,
@@ -22,40 +23,67 @@ export function AuthProvider({ children }) {
 
   // Initialize auth state from storage
   useEffect(() => {
-    const initializeAuth = () => {
+    const initializeAuth = async () => {
       try {
+        logAuthState("AuthContext - Before Sync");
+        
+        // First, sync OAuth user cookie to localStorage if it exists
+        if (typeof document !== "undefined") {
+          const userCookie = document.cookie
+            .split("; ")
+            .find((row) => row.startsWith("user="))
+            ?.split("=")[1];
+          
+          if (userCookie) {
+            try {
+              const userData = JSON.parse(decodeURIComponent(userCookie));
+              localStorage.setItem("auth_user", JSON.stringify(userData));
+              console.log("✅ Synced user from cookie to localStorage");
+            } catch (e) {
+              console.error("Failed to parse user cookie:", e);
+            }
+          }
+        }
+        
+        logAuthState("AuthContext - After Sync");
+        
         const storedUser = getUser();
         const hasToken = isAuthenticated();
         
-        // Check if OAuth was recently synced
-        const oauthSynced = localStorage.getItem("oauth_synced") === "true";
-
-        // Try to get user from cookie if not in localStorage
-        let userToUse = storedUser;
-        let hasAccessToken = hasToken;
+        console.log("🔍 Auth Check:", {
+          storedUser: !!storedUser,
+          hasToken,
+          userEmail: storedUser?.email,
+        });
         
-        if (!hasToken) {
-          // Check if accessToken cookie exists (server-set, can't read it, but we know it's there if this succeeded)
-          const hasCookie = document.cookie.includes("accessToken=");
-          if (hasCookie && oauthSynced && storedUser) {
-            hasAccessToken = true;
-          }
-        }
-
-        if (userToUse && hasAccessToken) {
-          setUserState(userToUse);
+        // Check if we have both user data and a token
+        if (storedUser && hasToken) {
+          console.log("✅ Authenticated via localStorage token");
+          setUserState(storedUser);
           setIsAuthenticated(true);
-          // Clear the oauth sync flag after use
-          if (oauthSynced) {
-            localStorage.removeItem("oauth_synced");
-          }
         } else {
-          setUserState(null);
-          setIsAuthenticated(false);
+          // Also check if accessToken cookie exists (can't read it but can verify presence)
+          const hasCookie = typeof document !== "undefined" && 
+                           document.cookie.includes("accessToken=");
+          
+          console.log("🔍 Cookie Check:", { hasCookie, storedUser: !!storedUser });
+          
+          if (storedUser && hasCookie) {
+            // Token cookie exists and we have user data, treat as authenticated
+            console.log("✅ Authenticated via cookie + user data");
+            setUserState(storedUser);
+            setIsAuthenticated(true);
+          } else {
+            console.log("❌ Not authenticated - missing token or user");
+            setUserState(null);
+            setIsAuthenticated(false);
+          }
         }
       } catch (err) {
         console.error("Failed to initialize auth:", err);
         setError(err.message);
+        setUserState(null);
+        setIsAuthenticated(false);
       } finally {
         setIsLoading(false);
       }

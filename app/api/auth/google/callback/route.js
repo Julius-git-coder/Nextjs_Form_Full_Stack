@@ -69,13 +69,16 @@ export async function GET(request) {
 
     // If user doesn't exist, create one
     if (!user) {
-      user = await createUser({
-        firstName: userData.given_name || "Google",
-        lastName: userData.family_name || "User",
-        email: userData.email,
-        password: Math.random().toString(36).substring(2, 15),
-        isEmailVerified: userData.email_verified || true,
-      });
+     console.log(`[OAuth] Creating new user: ${userData.email}`);
+     user = await createUser({
+       firstName: userData.given_name || "Google",
+       lastName: userData.family_name || "User",
+       email: userData.email,
+       password: Math.random().toString(36).substring(2, 15),
+       isEmailVerified: userData.email_verified || true,
+     });
+    } else {
+     console.log(`[OAuth] User exists: ${userData.email}`);
     }
 
     // Generate our app tokens
@@ -143,6 +146,9 @@ export async function GET(request) {
       sameSite: "lax",
       maxAge: 7 * 24 * 60 * 60,
     });
+
+    console.log(`[OAuth] Setting cookies for user: ${user.email}`);
+    console.log(`[OAuth] Redirecting to: /dashboard`);
 
     return response;
   } catch (error) {
