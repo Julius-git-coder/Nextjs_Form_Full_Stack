@@ -12,19 +12,25 @@ const JWT_REFRESH_SECRET =
  */
 export async function GET(request) {
   try {
+    console.log(`[OAuth Callback] Started - URL: ${request.url}`);
+    
     const { searchParams } = new URL(request.url);
     const code = searchParams.get("code");
     const error = searchParams.get("error");
 
+    console.log(`[OAuth Callback] Code: ${code ? "present" : "missing"}, Error: ${error || "none"}`);
+
     // Handle OAuth errors
     if (error) {
       const errorDescription = searchParams.get("error_description") || error;
+      console.log(`[OAuth Callback] OAuth error: ${errorDescription}`);
       return NextResponse.redirect(
         `/auth/Login?error=${encodeURIComponent(errorDescription)}`
       );
     }
 
     if (!code) {
+      console.log(`[OAuth Callback] No authorization code received`);
       return NextResponse.redirect(
         "/auth/Login?error=" + encodeURIComponent("No authorization code received")
       );
@@ -102,8 +108,10 @@ export async function GET(request) {
     );
 
     // Create response with redirect to dashboard
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+    console.log(`[OAuth Callback] Redirecting to: ${baseUrl}/dashboard`);
     const response = NextResponse.redirect(
-      new URL("/dashboard", process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000")
+      new URL("/dashboard", baseUrl)
     );
 
     // Store tokens in cookies
@@ -140,15 +148,19 @@ export async function GET(request) {
       isEmailVerified: user.isEmailVerified || true,
     };
 
-    response.cookies.set("user", JSON.stringify(userDataForCookie), {
+    const userCookieValue = JSON.stringify(userDataForCookie);
+    console.log(`[OAuth Callback] User data for cookie:`, userDataForCookie);
+    console.log(`[OAuth Callback] User cookie size: ${userCookieValue.length} bytes`);
+
+    response.cookies.set("user", userCookieValue, {
       httpOnly: false,
       secure: process.env.NODE_ENV === "production",
       sameSite: "lax",
       maxAge: 7 * 24 * 60 * 60,
     });
 
-    console.log(`[OAuth] Setting cookies for user: ${user.email}`);
-    console.log(`[OAuth] Redirecting to: /dashboard`);
+    console.log(`[OAuth Callback] Cookies set for user: ${user.email}`);
+    console.log(`[OAuth Callback] AccessToken cookie: ${accessToken.substring(0, 20)}...`);
 
     return response;
   } catch (error) {
