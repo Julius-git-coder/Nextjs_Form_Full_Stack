@@ -1,13 +1,14 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
 import InputField from "../components/InputField";
 import SubmitButton from "../components/SubmitButton";
+import BackgroundParticles from "../components/BackgroundParticles";
 import { useToast } from "@/app/context/ToastContext";
 
-export default function ResetPasswordPage() {
+function ResetPasswordPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { showSuccess, showError } = useToast();
@@ -91,11 +92,12 @@ export default function ResetPasswordPage() {
 
   if (!tokenValid) {
     return (
-      <div className="min-h-screen bg-black flex items-center justify-center p-4">
+      <div className="min-h-screen bg-black flex items-center justify-center p-4 relative overflow-hidden">
+        <BackgroundParticles />
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-white rounded-lg p-8 max-w-md w-full text-center"
+          className="bg-white rounded-lg p-8 max-w-md w-full text-center relative z-10"
         >
           <h2 className="text-2xl font-bold text-gray-800 mb-4">Invalid Link</h2>
           <p className="text-gray-600 mb-6">
@@ -113,12 +115,13 @@ export default function ResetPasswordPage() {
   }
 
   return (
-    <div className="min-h-screen bg-black flex items-center justify-center p-4">
+    <div className="min-h-screen bg-black flex items-center justify-center p-4 relative overflow-hidden">
+      <BackgroundParticles />
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.5 }}
-        className="bg-white rounded-3xl shadow-2xl p-8 max-w-md w-full"
+        className="bg-white rounded-3xl shadow-2xl p-8 max-w-md w-full relative z-10"
       >
         <h2 className="text-3xl font-bold text-gray-800 mb-6 text-center">
           Reset Password
@@ -181,5 +184,13 @@ export default function ResetPasswordPage() {
         </div>
       </motion.div>
     </div>
+  );
+}
+
+export default function ResetPasswordPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-black"></div>}>
+      <ResetPasswordPageContent />
+    </Suspense>
   );
 }
