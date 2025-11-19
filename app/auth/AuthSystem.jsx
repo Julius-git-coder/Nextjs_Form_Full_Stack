@@ -82,13 +82,13 @@ export default function AuthSystem({ initialPage = "login" }) {
         onClick={() => handleSocialLogin("Apple")}
       />
 
-      <div className="text-center mt-4">
-        <NavLink
-          text="Forgot Password?"
-          onClick={() => navigateTo("forgot")}
-          className="text-sm"
-        />
-      </div>
+       <div className="text-center mt-4">
+         <NavLink
+           text="Forgot Password?"
+           onClick={() => navigateTo("forgot")}
+           className="text-sm"
+         />
+       </div>
 
       <div className="text-center mt-4 text-sm text-gray-600">
         Don&apos;t have an account?{" "}

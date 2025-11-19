@@ -10,11 +10,19 @@ const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key-change-in-producti
  */
 export async function POST(request) {
   try {
-    const { token, newPassword } = await request.json();
+    const { token, password, confirmPassword } = await request.json();
+    const newPassword = password;
 
     if (!token || !newPassword) {
       return NextResponse.json(
         { message: "Token and new password are required" },
+        { status: 400 }
+      );
+    }
+
+    if (newPassword !== confirmPassword) {
+      return NextResponse.json(
+        { message: "Passwords do not match" },
         { status: 400 }
       );
     }

@@ -107,15 +107,51 @@ export function useAuthForm() {
           return;
         }
 
-        window.AppleID.auth.init({
-          clientId: process.env.NEXT_PUBLIC_APPLE_CLIENT_ID,
-          teamId: process.env.NEXT_PUBLIC_APPLE_TEAM_ID,
-          keyId: process.env.NEXT_PUBLIC_APPLE_KEY_ID,
-          redirectURI: `${window.location.origin}/api/auth/apple/callback`,
-          usePopup: true,
-        });
+        try {
+          window.AppleID.auth.init({
+            clientId: process.env.NEXT_PUBLIC_APPLE_CLIENT_ID,
+            teamId: process.env.NEXT_PUBLIC_APPLE_TEAM_ID,
+            keyId: process.env.NEXT_PUBLIC_APPLE_KEY_ID,
+            redirectURI: `${window.location.origin}/api/auth/apple/callback`,
+            usePopup: true,
+          });
 
-        window.AppleID.auth.signIn();
+          window.AppleID.auth.signIn().then(async (response) => {
+            if (response && response.authorization) {
+              // Send to backend
+              const res = await fetch("/api/auth/apple/callback", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  user: response.user,
+                  identityToken: response.authorization.id_token,
+                  authorizationCode: response.authorization.code,
+                }),
+              });
+
+              if (!res.ok) {
+                const error = await res.json();
+                throw new Error(error.message || "Apple authentication failed");
+              }
+
+              const result = await res.json();
+
+              // Store tokens and user info
+              localStorage.setItem("accessToken", result.accessToken);
+              localStorage.setItem("refreshToken", result.refreshToken);
+              localStorage.setItem("user", JSON.stringify(result.user));
+
+              showSuccess("Apple authentication successful!");
+              router.push("/dashboard");
+            }
+          });
+        } catch (error) {
+          console.error("Apple auth error:", error);
+          const message = error.message || "Apple authentication failed";
+          setApiError(message);
+          showError(message);
+          setIsLoading(false);
+        }
       }
     } catch (error) {
       console.error("Social login error:", error);

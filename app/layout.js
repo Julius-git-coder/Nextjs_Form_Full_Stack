@@ -30,6 +30,11 @@ export default function RootLayout({ children }) {
           defer
         ></script>
         <script
+          src="https://appleid.cdn-apple.com/appleauth/static/jsapi/appleid.auth.js"
+          async
+          defer
+        ></script>
+        <script
           dangerouslySetInnerHTML={{
             __html: `
               // Sync OAuth cookies to localStorage on page load
